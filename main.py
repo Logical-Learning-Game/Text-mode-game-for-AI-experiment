@@ -1,5 +1,6 @@
 from board import Board
 from action import Action
+from agent.search import uniform_cost_search
 
 
 board_str = """
@@ -15,7 +16,9 @@ if __name__ == "__main__":
     
     while not board.is_goal_state():
         print(board)
+        print(board.score)
         s = input()
         action = Action.from_string(s)
-        board.update(action)
+        board = board.update(action)
+
 

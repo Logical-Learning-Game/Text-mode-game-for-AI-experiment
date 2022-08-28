@@ -24,9 +24,10 @@ class Position:
 
 
 class Board:
-    def __init__(self, board: list[str], player_position: Position):
+    def __init__(self, board: list[str], player_position: Position, score: int):
         self.board = board
         self.player_position = player_position
+        self.score = score
     
     @classmethod
     def from_string(cls, s: str):
@@ -45,26 +46,34 @@ class Board:
                 if tile == PLAYER:
                     player_pos  = Position(j, i)
 
-        return cls(lst, player_pos)
+        return cls(lst, player_pos, 0)
 
     def update(self, action: str):
         x, y = self.player_position.x, self.player_position.y
+        to_move = None
+
+        new_board = Board(self.board, self.player_position, self.score)
+
         if action == Action.UP:
-            self.board[y][x] = EMPTY
-            self.board[y - 1][x] = PLAYER
-            self.player_position.y -= 1
+            new_board.player_position.y -= 1
+            to_move = (x, y - 1)
         elif action == Action.DOWN:
-            self.board[y][x] = EMPTY
-            self.board[y + 1][x] = PLAYER
-            self.player_position.y += 1
+            new_board.player_position.y += 1
+            to_move = (x, y + 1)
         elif action == Action.LEFT:
-            self.board[y][x] = EMPTY
-            self.board[y][x - 1] = PLAYER
-            self.player_position.x -= 1
+            new_board.player_position.x -= 1
+            to_move = (x - 1, y)
         elif action == Action.RIGHT:
-            self.board[y][x] = EMPTY
-            self.board[y][x + 1] = PLAYER
-            self.player_position.x += 1
+            new_board.player_position.x += 1
+            to_move = (x + 1, y)
+
+        if to_move:
+            new_board.board[y][x] = EMPTY
+            if new_board.board[to_move[1]][to_move[0]] == SCORE:
+                new_board.score += 1
+            new_board.board[to_move[1]][to_move[0]] = PLAYER
+
+        return new_board
 
     def is_goal_state(self):
         for row in self.board:
