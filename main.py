@@ -1,5 +1,4 @@
 from board import Board
-from action import Action
 from agent.search import uniform_cost_search
 
 
@@ -11,14 +10,19 @@ board_str = """
         P.......G
         """
 
+board_str2 = """
+        .*.xxxxxx
+        .x.xxxxG.
+        ...xx.xx.
+        x.xxx*xx*
+        x........
+        xxxxx.xxx
+        xxP...xxx
+        """
+
 if __name__ == "__main__":
     board = Board.from_string(board_str)
-    
-    while not board.is_goal_state():
-        print(board)
-        print(board.score)
-        s = input()
-        action = Action.from_string(s)
-        board = board.update(action)
 
+    result = uniform_cost_search(board)
+    print(result)
 

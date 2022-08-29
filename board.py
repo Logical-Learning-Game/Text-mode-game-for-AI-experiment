@@ -7,12 +7,20 @@ G - Goal Tile
 """
 
 from action import Action
+import copy
+import util
 
 EMPTY = "."
-BLOCK = "X"
+BLOCK = "x"
 SCORE = "*"
 PLAYER = "P"
 GOAL = "G"
+
+TILE_IDX = {
+    PLAYER: 0,
+    SCORE: 1,
+    GOAL: 2
+}
 
 class Position:
     def __init__(self, x: int, y: int):
@@ -24,10 +32,12 @@ class Position:
 
 
 class Board:
-    def __init__(self, board: list[str], player_position: Position, score: int):
+    def __init__(self, board: list[str], player_position: Position, score: int, remaining_score: int):
         self.board = board
         self.player_position = player_position
         self.score = score
+        self.remaining_score = remaining_score
+        self.zobrist_table = util.generate_zobrist_table(board)
     
     @classmethod
     def from_string(cls, s: str):
@@ -41,18 +51,21 @@ class Board:
             lst[i] = list(lst[i])
 
         player_pos = None
+        remaining_score = 0
         for i, row in enumerate(lst):
             for j, tile in enumerate(row):
                 if tile == PLAYER:
                     player_pos  = Position(j, i)
+                elif tile == SCORE:
+                    remaining_score += 1
 
-        return cls(lst, player_pos, 0)
+        return cls(lst, player_pos, 0, remaining_score)
 
     def update(self, action: str):
         x, y = self.player_position.x, self.player_position.y
         to_move = None
 
-        new_board = Board(self.board, self.player_position, self.score)
+        new_board = copy.deepcopy(self)
 
         if action == Action.UP:
             new_board.player_position.y -= 1
@@ -71,6 +84,7 @@ class Board:
             new_board.board[y][x] = EMPTY
             if new_board.board[to_move[1]][to_move[0]] == SCORE:
                 new_board.score += 1
+                new_board.remaining_score -= 1
             new_board.board[to_move[1]][to_move[0]] = PLAYER
 
         return new_board
@@ -80,13 +94,16 @@ class Board:
             for tile in row:
                 if tile == GOAL:
                     return False
-        return True
+        return self.remaining_score == 0
 
     def check_passable_tile(self, x: int, y: int):
         if y < 0 or  x < 0 or y > len(self.board) - 1 or x > len(self.board[y]) - 1:
             return False
         
-        return self.board[y][x] in {EMPTY, SCORE, GOAL}
+        if self.remaining_score == 0:
+            return self.board[y][x] in {EMPTY, SCORE, GOAL}
+        
+        return self.board[y][x] in {EMPTY, SCORE}
 
 
     def get_valid_actions(self):
@@ -103,6 +120,25 @@ class Board:
 
         if self.check_passable_tile(x + 1, y):
             yield Action.RIGHT
+
+    def __hash__(self):
+        hash_value = 0
+        table = self.zobrist_table
+
+        idx = 0
+        for i, row in enumerate(self.board):
+            for j, tile in enumerate(row):
+                if tile not in {EMPTY, BLOCK}:
+                    tile_zobrist_idx = TILE_IDX[tile]
+                    hash_value ^= table[idx][tile_zobrist_idx]
+                idx += 1
+
+        return hash_value
+
+    def __eq__(self, other):
+        if isinstance(other, Board):
+            return hash(self) == hash(other)
+        return False
 
     def __str__(self):
         s = ""
