@@ -1,5 +1,5 @@
 from board import Board
-from agent.search import uniform_cost_search
+from agent.search import breadth_first_search, uniform_cost_search
 import os
 import msvcrt
 

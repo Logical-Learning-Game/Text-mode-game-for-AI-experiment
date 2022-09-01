@@ -1,5 +1,6 @@
 from board import Board
 import heapq
+from collections import deque
 
 
 class ProblemState:
@@ -79,3 +80,26 @@ def uniform_cost_search(board: Board):
                     priority_queue[idx] = child_state
                     heapq.heapify(priority_queue)
 
+
+def breadth_first_search(board: Board):
+    initial_state = ProblemState(board)
+    queue = deque([initial_state])
+
+    if initial_state.board.is_goal_state():
+        return solution(initial_state), initial_state.cost
+
+    explored_set = set()
+
+    while len(queue) > 0:
+        state = queue.popleft()
+        explored_set.add(state)
+
+        for action in state.board.get_valid_actions():
+            updated_board = state.board.update(action)
+            child_state = ProblemState(updated_board, action, prev_state=state)
+
+            if child_state not in explored_set and child_state not in queue:
+                if child_state.board.is_goal_state():
+                    return solution(child_state), child_state.cost
+
+                queue.append(child_state)
