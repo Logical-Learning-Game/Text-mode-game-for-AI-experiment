@@ -1,28 +1,48 @@
 from board import Board
 from agent.search import uniform_cost_search
+import os
+import msvcrt
 
 
 board_str = """
-        ....*..xx
-        .x.x.x.xx
-        ..*...*..
-        .x.x.x.x.
-        P.......G
-        """
+		....*..xx
+		.x.x.x.xx
+		..*...*..
+		.x.x.x.x.
+		P.......G
+		"""
 
 board_str2 = """
-        .*.xxxxxx
-        .x.xxxxG.
-        ...xx.xx.
-        x.xxx*xx*
-        x........
-        xxxxx.xxx
-        xxP...xxx
-        """
+		.*.xxxxxx
+		.x.xxxxG.
+		...xx.xx.
+		x.xxx*xx*
+		x........
+		xxxxx.xxx
+		xxP...xxx
+		"""
+
+board_str3 = """
+		!..G
+		!...
+		!...
+		P...
+		"""
 
 if __name__ == "__main__":
-    board = Board.from_string(board_str)
+	board = Board.from_string(board_str2)
 
-    result = uniform_cost_search(board)
-    print(result)
+	actions, cost = uniform_cost_search(board)
+	print(actions, cost)
+	
+	for action in actions:
+		print(board)
+
+		msvcrt.getch()
+		os.system("cls")
+
+		board = board.update(action)
+
+	print(board)
+
 
